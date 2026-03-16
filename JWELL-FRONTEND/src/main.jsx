@@ -1,15 +1,21 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { BrowserRouter } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ToastContainer />
+import App from "./App";
+import { CartProvider } from "./Context/cartContext";
+import { AppProvider } from "./Context/productContext";
+
+import "./index.css"; // 🔥 VERY IMPORTANT
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <AppProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AppProvider>
     </BrowserRouter>
-  </StrictMode>,
-)
+  </React.StrictMode>
+);

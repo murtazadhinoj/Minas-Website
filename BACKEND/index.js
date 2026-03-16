@@ -1,29 +1,33 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-require('./Models/db');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const authRouter = require('./Routers/authRouter');
+require("./Models/db");
+require("dotenv").config();
 
-require('dotenv').config();
+const bodyParser = require("body-parser");
+const cors = require("cors");
+
+// ROUTERS
+const authRouter = require("./Routers/authRouter");
+const productRouter = require("./Routers/productRouter");
+const orderRouter = require("./Routers/orderRouter");
 
 const PORT = 8080;
 
-
-
+// MIDDLEWARE
 app.use(bodyParser.json());
 app.use(cors());
-app.use('/auth', authRouter);
 
-app.get('/ping', (req, res)=>{
-    res.send('pong');
-  
+// ROUTES
+app.use("/auth", authRouter);
+app.use("/api/products", productRouter);
+app.use("/api", orderRouter);
+
+// HEALTH CHECK
+app.get("/ping", (req, res) => {
+  res.send("pong");
 });
 
-
-
-app.listen(PORT, ()=>{
-    console.log(`Server is running on port ${process.env.PORT}`);
-    
-
-} ) 
+// START SERVER
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
