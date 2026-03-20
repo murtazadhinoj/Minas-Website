@@ -41,7 +41,7 @@ function AuthPopBox({ closeAuth }) {
       }
 
       try{
-            const url = "http://localhost:8080/auth/login";
+            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/login`;
             const response = await fetch(url, {
               method: 'POST',
               headers: {
@@ -114,7 +114,7 @@ function AuthPopBox({ closeAuth }) {
       }
 
       try{
-            const url = "http://localhost:8080/auth/register";
+            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/register`;
             const response = await fetch(url, {
               method: 'POST',
               headers: {

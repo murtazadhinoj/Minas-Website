@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+     "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.2",
-    "stripe": "^20.1.2"
+    "stripe": "^20.1.2",
+    "nodemon": "^3.0.0"
   }
 }

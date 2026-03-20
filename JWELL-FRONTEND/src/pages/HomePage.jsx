@@ -24,7 +24,7 @@ function HomePage() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/products/filters");
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/products/filters`);
         const { success, data } = await res.json();
         if (success) {
           setFilterOptions({

@@ -1,7 +1,7 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 require("./Models/db");
-require("dotenv").config();
 
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -11,7 +11,7 @@ const authRouter = require("./Routers/authRouter");
 const productRouter = require("./Routers/productRouter");
 const orderRouter = require("./Routers/orderRouter");
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 // MIDDLEWARE
 app.use(bodyParser.json());

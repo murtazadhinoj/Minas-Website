@@ -9,7 +9,7 @@ function WhatsNew() {
   useEffect(() => {
     const fetchNewProducts = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/products/new");
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/products/new`);
         const data = await res.json();
 
         if (data.success) {
