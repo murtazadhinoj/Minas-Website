@@ -153,7 +153,7 @@ function AuthPopBox({ closeAuth }) {
   return (
 <>
   {/* Overlay */}
-  <div className="fixed inset-0 z-50 flex items-center justify-center">
+  <div className="fixed inset-0 z-99999 flex items-center justify-center">
     <div
       className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fadeIn"
       onClick={closeAuth}
@@ -217,7 +217,7 @@ function AuthPopBox({ closeAuth }) {
             <input
               type="password"
               name="password"
-              value={loginInfo.password}wh
+              value={loginInfo.password}
               onChange={handleLoginChange}
               placeholder="Password"
               className="w-full border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-black"

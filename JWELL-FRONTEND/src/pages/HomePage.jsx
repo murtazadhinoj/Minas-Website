@@ -111,7 +111,7 @@ function HomePage() {
       </RevealOnScroll>
 
       {/* --- PRODUCT SHOWCASES --- */}
-      <div className="space-y-52 pb-52">
+      <div className="space-y-52">
         <CategoryShowcase 
           title="Rings" subtitle="Where form meets identity" 
           bannerImage={ringBanner} products={getProductsByCat('Ring')} 
@@ -129,7 +129,7 @@ function HomePage() {
       {/* MOBILE FILTER TRIGGER */}
       <button 
         onClick={() => setShowFilters(true)}
-        className="fixed bottom-10 right-10 z-50 md:hidden bg-black text-white px-8 py-4 rounded-full text-[10px] font-bold tracking-widest shadow-2xl active:scale-95 transition-transform"
+        className="fixed bottom-10 right-10 z-[40] md:hidden bg-black text-white px-8 py-4 rounded-full text-[10px] font-bold tracking-widest shadow-2xl active:scale-95 transition-transform"
       >
         FILTER
       </button>
@@ -140,51 +140,9 @@ function HomePage() {
 /**
  * REFINED SHOWCASE COMPONENT
  */
-// const CategoryShowcase = ({ title, subtitle, bannerImage, products }) => (
-//   <section className={`mx-auto ${MAX_CONTENT_WIDTH} px-6 md:px-12 group/section`}>
-//     <RevealOnScroll>
-//       <div className="relative aspect-[16/10] md:aspect-[21/9] overflow-hidden bg-[#f3f3f3]">
-//         <img 
-//           src={bannerImage} alt={title}
-//           className={`w-full h-full object-cover transition-transform duration-[2000ms] group-hover/section:scale-105`}
-//         />
-//         <div className="absolute inset-0 bg-black/15" />
-//         <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16 text-white">
-//           <span className="text-[10px] font-bold tracking-[0.4em] uppercase mb-2 opacity-90">{subtitle}</span>
-//           <h2 className="text-5xl md:text-7xl font-extralight tracking-tighter uppercase mb-10">{title}</h2>
-//           <Link 
-//             to={`/category/${title.toLowerCase()}`}
-//             className="w-fit border border-white/50 px-10 py-4 text-[10px] font-bold tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500"
-//           >
-//             EXPLORE COLLECTION
-//           </Link>
-//         </div>
-//       </div>
-//     </RevealOnScroll>
-
-//     {/* Indented Grid Section (The "Red Arrow" Padding) */}
-//     <div className="mt-16 md:mt-24 px-2 md:px-20 lg:px-32">
-//       <RevealOnScroll delay={200}>
-//         {products.length > 0 ? (
-//           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 md:gap-x-12 gap-y-16">
-//             {products.map(p => <ProductCard key={p._id} product={p} />)}
-//           </div>
-//         ) : (
-//           <div className="h-40 flex items-center justify-center border border-dashed border-gray-200 text-[10px] tracking-[0.3em] text-gray-400 uppercase">
-//             New Pieces Coming Soon
-//           </div>
-//         )}
-//       </RevealOnScroll>
-//     </div>
-//   </section>
-// );
-
-/**
- * REFINED SHOWCASE COMPONENT
- */
 const CategoryShowcase = ({ title, subtitle, bannerImage, products }) => (
   /* Adjusted px-6 md:px-12 -> px-4 md:px-8 to push banner closer to edges */
-<section className="w-full group/section">
+<section className="w-full group/section" style={{margin:0}}>
     <RevealOnScroll>
       <div className="relative w-full h-[80vh] md:h-[95vh] overflow-hidden">
         <img 

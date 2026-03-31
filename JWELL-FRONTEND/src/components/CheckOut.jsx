@@ -3,79 +3,41 @@ import { useCartContext } from "../Context/cartContext";
 import payment_gateway_img from "../assets/imgs/payment_gateways.webp";
 import axios from "axios";
 
-function CheckOut({ closeCheckout, openOrderSuccess }) {
-  const { cart, clearCart } = useCartContext();
+function CheckOut({ closeCheckout, openOrderSuccess, openAuth }) {
+  const { cart, clearCart, increaseQty, decreaseQty, removeItem } = useCartContext();
 
-  // 🔹 BILLING DATA
   const [billingData, setBillingData] = useState({
-    firstName: "",
-    lastName: "",
-    country: "",
-    town: "",
-    state: "",
-    address: "",
-    apartment: "",
-    postcode: "",
-    email: "",
-    phone: "",
+    firstName: "", lastName: "", country: "", town: "",
+    state: "", address: "", apartment: "", postcode: "", email: "", phone: "",
   });
 
-  // 🔹 OTHER STATES
   const [invoice, setInvoice] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [newsletter, setNewsletter] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [loading, setLoading] = useState(false);
 
-  // 🔹 SUBTOTAL
-  const subtotal = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const vat = +(subtotal * 0.24).toFixed(2);
+  const total = +(subtotal + vat).toFixed(2);
 
-  // 🔹 INPUT HANDLER
   const handleBillingChange = (e) => {
     const { name, value } = e.target;
-    setBillingData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setBillingData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 PLACE ORDER (DUMMY – NO PAYMENT GATEWAY)
   const handlePlaceOrder = async () => {
-    if (!acceptTerms) {
-      alert("Please accept Terms & Conditions");
-      return;
-    }
+    if (!acceptTerms) { alert("Please accept Terms & Conditions"); return; }
+    if (cart.length === 0) { alert("Cart is empty"); return; }
 
-    if (cart.length === 0) {
-      alert("Cart is empty");
-      return;
-    }
-
-    const orderData = {
-      billingData,
-      cart,
-      subtotal,
-      paymentMethod,
-      invoice,
-      newsletter,
-    };
+    const orderData = { billingData, cart, subtotal, paymentMethod, invoice, newsletter };
 
     try {
       setLoading(true);
-
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/orders`,
-        orderData
-      );
-
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/orders`, orderData);
       if (res.data.success) {
-        const orderId = res.data.order._id;
-
         clearCart();
-        openOrderSuccess(orderId); // ✅ THIS OPENS SUCCESS PAGE
+        openOrderSuccess(res.data.order._id);
       }
     } catch (err) {
       console.error("ORDER ERROR:", err);
@@ -85,168 +47,212 @@ function CheckOut({ closeCheckout, openOrderSuccess }) {
     }
   };
 
+  const fieldLabels = {
+    firstName: "First Name", lastName: "Last Name", country: "Country",
+    town: "City / Town", state: "State", address: "Street Address",
+    apartment: "Apartment, suite, etc.", postcode: "Postcode / ZIP",
+    email: "Email Address", phone: "Phone",
+  };
+
   return (
-    <div className="checkout_wrapper fixed top-0 left-0 w-full h-screen bg-black z-[9999] p-5 overflow-y-auto">
-      <div className="checkout_main w-full min-h-screen flex flex-col items-center gap-4">
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/30 z-[9998]"
+        onClick={closeCheckout}
+      />
 
-        {/* HEADER */}
-        <div className="checkout_header w-full flex justify-between items-end">
-          <span className="text-white">SECURE CHECKOUT</span>
-          <button
-            onClick={closeCheckout}
-            className="text-white text-xl pb-11 hover:opacity-70 transition"
-          >
-            ✕
-          </button>
-        </div>
+      {/* Side-by-side panel container */}
+      <div className="fixed inset-0 z-[9999] flex pointer-events-none">
 
-        {/* RETURNING CUSTOMER */}
-        <div className="returining_customer w-full rounded-lg bg-white flex flex-col gap-5 p-4 mt-5">
-          <div className="returning_custom_heading font-semibold">
-            Returning Customer?
-          </div>
-          <p>
-            If you’re already a member of House of Minas click here to login,
-            otherwise you may continue filling the form below.
-          </p>
-          <button className="py-2 px-17 border rounded-md hover:opacity-80 transition">
-            login
-          </button>
-        </div>
-
-        {/* BILLING DETAILS */}
-        <div className="checkout_form w-full rounded-lg bg-white flex flex-col gap-5 p-4">
-          <span className="mt-5">BILLING DETAILS</span>
-
-          {/* INVOICE */}
-          <div className="invoive w-full">
-            <span>I WANT TO ISSUE AN INVOICE</span>
-            <div className="invoice_box border flex justify-between w-[52%] p-1 mt-4 rounded-sm">
-              <div
-                className={`px-6 py-2 rounded-sm cursor-pointer transition ${
-                  !invoice ? "bg-red-900 text-white" : ""
-                }`}
-                onClick={() => setInvoice(false)}
-              >
-                NO
-              </div>
-              <div
-                className={`px-6 py-2 rounded-sm cursor-pointer transition ${
-                  invoice ? "bg-green-600 text-white" : ""
-                }`}
-                onClick={() => setInvoice(true)}
-              >
-                YES
-              </div>
-            </div>
-          </div>
-
-          {/* FORM */}
-          <form className="w-full flex flex-col gap-3">
-            {Object.keys(billingData).map((key) => (
-              <input
-                key={key}
-                name={key}
-                placeholder={key.replace(/([A-Z])/g, " $1")}
-                value={billingData[key]}
-                onChange={handleBillingChange}
-                className="w-full py-7 px-4 rounded-sm border"
-              />
-            ))}
-          </form>
-        </div>
-
-        {/* PAYMENT */}
-        <div className="payment_gatways w-full rounded-lg bg-white flex flex-col gap-5 p-4">
-          <span>PAYMENT</span>
-          <img src={payment_gateway_img} alt="" />
-
-          {[
-            { id: "COD", label: "CASH ON DELIVERY" },
-            { id: "GPAY", label: "GOOGLE PAY" },
-            { id: "CARD", label: "PAY WITH CARD" },
-            { id: "PAYPAL", label: "PAY WITH PAYPAL" },
-          ].map((p) => (
-            <div
-              key={p.id}
-              className="flex gap-3 items-center cursor-pointer hover:opacity-80 transition"
-              onClick={() => setPaymentMethod(p.id)}
-            >
-              <div
-                className={`tick h-[2.1rem] w-[2.1rem] rounded-full ${
-                  paymentMethod === p.id ? "bg-green-600" : "bg-black"
-                }`}
-              />
-              <span>{p.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* TERMS & NEWSLETTER */}
-        <div className="conditions_boxes w-full rounded-lg text-white flex flex-col gap-5 p-4">
-          <p>
-            Your personal data will be used to process your order and support your
-            experience throughout this website.
-          </p>
-
-          {/* TERMS */}
-          <div className="T&C w-full">
-            <span>I HAVE READ AND AGREE TO THE WEBSITE TERMS & CONDITION</span>
-            <div className="invoice_box border flex justify-between w-[52%] p-1 mt-4 rounded-sm">
-              <div
-                className={`px-6 py-2 rounded-sm cursor-pointer transition ${
-                  !acceptTerms ? "bg-red-900 text-white" : ""
-                }`}
-                onClick={() => setAcceptTerms(false)}
-              >
-                NO
-              </div>
-              <div
-                className={`px-6 py-2 rounded-sm cursor-pointer transition ${
-                  acceptTerms ? "bg-green-600 text-white" : ""
-                }`}
-                onClick={() => setAcceptTerms(true)}
-              >
-                YES
-              </div>
-            </div>
-          </div>
-
-          {/* NEWSLETTER */}
-          <div className="T&C w-full">
-            <span>I WISH TO RECEIVE NEWS & UPDATES</span>
-            <div className="invoice_box border flex justify-between w-[52%] p-1 mt-4 rounded-sm">
-              <div
-                className={`px-6 py-2 rounded-sm cursor-pointer transition ${
-                  !newsletter ? "bg-red-900 text-white" : ""
-                }`}
-                onClick={() => setNewsletter(false)}
-              >
-                NO
-              </div>
-              <div
-                className={`px-6 py-2 rounded-sm cursor-pointer transition ${
-                  newsletter ? "bg-green-600 text-white" : ""
-                }`}
-                onClick={() => setNewsletter(true)}
-              >
-                YES
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* PLACE ORDER */}
+        {/* LEFT — Checkout Form (slides in from left) */}
         <div
-          className="CheckOut-Box bg-white p-6 h-[13%] w-full mt-3 rounded-sm text-black flex justify-between items-center px-5 cursor-pointer hover:opacity-80 transition"
-          onClick={handlePlaceOrder}
+          className="pointer-events-auto w-full md:w-1/2 h-full bg-white overflow-y-auto
+          animate-slideInLeft"
+          style={{ animation: "slideInLeft 0.4s cubic-bezier(0.22,1,0.36,1) both" }}
         >
-          <span>{loading ? "PLACING ORDER..." : "PLACE ORDER"}</span>
-          <span>€{subtotal}</span>
+          <style>{`
+            @keyframes slideInLeft {
+              from { transform: translateX(-100%); opacity: 0; }
+              to   { transform: translateX(0);     opacity: 1; }
+            }
+            @keyframes slideInRight {
+              from { transform: translateX(100%); opacity: 0; }
+              to   { transform: translateX(0);    opacity: 1; }
+            }
+          `}</style>
+
+          <div className="px-10 py-10 flex flex-col gap-6">
+
+            {/* Header */}
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs tracking-[0.2em] uppercase text-gray-500">Secure Checkout</span>
+              <button onClick={closeCheckout} className="text-xl text-gray-400 hover:text-black transition">✕</button>
+            </div>
+
+            {/* Returning Customer */}
+            <div className="border border-gray-200 rounded-lg p-5 flex flex-col gap-3">
+              <p className="text-sm font-medium">Returning Customer?</p>
+              <p className="text-xs text-gray-500">
+                Already a member of House of Minas?{" "}
+                <span onClick={openAuth} className="underline cursor-pointer text-black">Click here to login</span>
+                , otherwise continue below.
+              </p>
+            </div>
+
+            {/* Billing Details */}
+            <div className="border border-gray-200 rounded-lg p-5 flex flex-col gap-4">
+              <p className="text-xs tracking-[0.2em] uppercase font-medium">Billing Details</p>
+
+              {/* Invoice toggle */}
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Issue an Invoice?</span>
+                <div className="flex border border-gray-200 rounded overflow-hidden text-xs">
+                  <div
+                    className={`px-4 py-1.5 cursor-pointer transition ${!invoice ? "bg-black text-white" : "text-gray-500"}`}
+                    onClick={() => setInvoice(false)}
+                  >NO</div>
+                  <div
+                    className={`px-4 py-1.5 cursor-pointer transition ${invoice ? "bg-black text-white" : "text-gray-500"}`}
+                    onClick={() => setInvoice(true)}
+                  >YES</div>
+                </div>
+              </div>
+
+              {/* Form grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {Object.keys(billingData).map((key) => (
+                  <input
+                    key={key}
+                    name={key}
+                    placeholder={fieldLabels[key] || key}
+                    value={billingData[key]}
+                    onChange={handleBillingChange}
+                    className={`border border-gray-200 rounded px-3 py-3 text-sm focus:outline-none focus:border-black transition
+                      ${key === "address" || key === "email" || key === "phone" ? "col-span-2" : ""}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Payment */}
+            <div className="border border-gray-200 rounded-lg p-5 flex flex-col gap-4">
+              <p className="text-xs tracking-[0.2em] uppercase font-medium">Payment</p>
+              <img src={payment_gateway_img} alt="" className="h-6 object-contain object-left" />
+
+              <div className="flex flex-col gap-3">
+                {[
+                  { id: "COD", label: "Cash on Delivery" },
+                  { id: "GPAY", label: "Google Pay" },
+                  { id: "CARD", label: "Payment with Credit Card via Stripe" },
+                  { id: "PAYPAL", label: "Pay with PayPal" },
+                ].map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex gap-3 items-center cursor-pointer group"
+                    onClick={() => setPaymentMethod(p.id)}
+                  >
+                    <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition
+                      ${paymentMethod === p.id ? "border-black" : "border-gray-300"}`}>
+                      {paymentMethod === p.id && <div className="h-2 w-2 rounded-full bg-black" />}
+                    </div>
+                    <span className="text-sm text-gray-700">{p.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Terms & Newsletter */}
+            <div className="flex flex-col gap-3">
+              {[
+                { label: "I have read and agree to the website Terms & Conditions", state: acceptTerms, set: setAcceptTerms },
+                { label: "I wish to receive news & updates", state: newsletter, set: setNewsletter },
+              ].map(({ label, state, set }, i) => (
+                <div key={i} className="flex items-start gap-3 cursor-pointer" onClick={() => set(!state)}>
+                  <div className={`mt-0.5 h-4 w-4 min-w-[1rem] border-2 rounded flex items-center justify-center transition
+                    ${state ? "bg-black border-black" : "border-gray-300"}`}>
+                    {state && <span className="text-white text-[10px]">✓</span>}
+                  </div>
+                  <span className="text-xs text-gray-600">{label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Place Order Button */}
+            <button
+              onClick={handlePlaceOrder}
+              className="w-full bg-black text-white py-4 flex justify-between items-center px-6
+              uppercase tracking-widest text-sm hover:opacity-90 transition rounded"
+            >
+              <span>{loading ? "Placing Order..." : "Place Order"}</span>
+              <span>€{total}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* RIGHT — Cart Summary (already visible, stays in place) */}
+        <div
+          className="pointer-events-auto w-full md:w-1/2 h-full bg-[#f5f5f5] overflow-y-auto
+          hidden md:flex flex-col"
+          style={{ animation: "slideInRight 0.4s cubic-bezier(0.22,1,0.36,1) both" }}
+        >
+          <div className="px-10 py-10 flex flex-col gap-6 flex-1">
+
+            {/* Header */}
+            <h2 className="text-xs tracking-[0.2em] uppercase text-gray-500">
+              {cart.length} Item(s) in your cart
+            </h2>
+
+            {/* Cart Items */}
+            {cart.map((item) => (
+              <div key={`${item.id}-${item.size}-${item.color}`}
+                className="bg-white rounded-xl p-5 flex gap-5">
+                <div className="w-[80px] h-[80px] bg-[#f0f0f0] rounded-lg flex items-center justify-center flex-shrink-0">
+                  <img src={item.image} alt={item.name} className="w-[60px] object-contain" />
+                </div>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[10px] tracking-widest uppercase text-gray-400">{item.category}</p>
+                      <p className="text-sm font-medium mt-0.5">{item.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{item.color}, {item.size}</p>
+                    </div>
+                    <p className="text-sm font-medium">€{item.price}</p>
+                  </div>
+                  <div className="flex justify-between items-center mt-3">
+                    <div className="border border-gray-200 rounded flex items-center text-sm">
+                      <button onClick={() => decreaseQty(item)} className="px-3 py-1">−</button>
+                      <span className="px-4 py-1 border-x border-gray-200">{item.quantity}</span>
+                      <button onClick={() => increaseQty(item)} className="px-3 py-1">+</button>
+                    </div>
+                    <button onClick={() => removeItem(item)} className="text-xs underline text-gray-400 hover:text-black transition">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Totals */}
+          <div className="px-10 py-8 border-t border-gray-200 bg-[#f5f5f5]">
+            <p className="text-[10px] tracking-widest uppercase text-gray-400 mb-4">
+              Shipping cost estimated at checkout
+            </p>
+            <div className="flex flex-col gap-2 text-sm text-gray-600">
+              <div className="flex justify-between"><span>Shipping</span><span>€5.00</span></div>
+              <div className="flex justify-between"><span>Subtotal</span><span>€{subtotal}</span></div>
+              <div className="flex justify-between"><span>VAT (24%)</span><span>€{vat}</span></div>
+            </div>
+            <div className="flex justify-between font-medium text-base pt-4 mt-2 border-t border-gray-300">
+              <span>Total</span>
+              <span>€{total}</span>
+            </div>
+          </div>
         </div>
 
       </div>
-    </div>
+    </>
   );
 }
 

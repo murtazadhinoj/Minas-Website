@@ -139,7 +139,6 @@ useEffect(() => {
   isOpen={cartOpen}
   closeCart={() => setCartOpen(false)}
   openCheckout={() => {
-    setCartOpen(false);
     setCheckoutOpen(true);
   }}
 />
@@ -153,6 +152,7 @@ useEffect(() => {
               setCheckoutOpen(false);
               setSuccessOpen(true);
             }}
+              openAuth={() => setAuthOpen(true)}
           />
         )}
 
